@@ -9,26 +9,22 @@
  * Implementation of hook_elements().
  *
  * These elements represent DOM nodes.
- *
- * @todo Functional completeness requires elements for these DOM node types:
- * ELEMENT_NODE, TEXT_NODE
  */
 function htmldom_elements() {
-  $type['htmlelement'] = array(
+  $type['xml_element'] = array(
     '#input' => FALSE,
     '#tag' => '',
     '#attributes' => array(),
-    '#pre_render' => array('htmldom_element_pre_render'),
+    '#pre_render' => array('htmldom_xml_element_pre_render'),
     '#tree' => TRUE,
   );
-  // OPTIONAL: Define additional element types.
   return $type;
 }
 
 /**
  *
  */
-function htmldom_element_pre_render($element) {
+function htmldom_xml_element_pre_render($element) {
   if ($element['#tree']) {
     $element['#prefix'] = '<'. check_plain($element['#tag']) . drupal_attributes($element['#attributes']) .'>';
     $element['#suffix'] = '</'. check_plain($element['#tag']) .'>';
@@ -44,26 +40,29 @@ function htmldom_element_pre_render($element) {
 
 function htmldom_dom_to_array($domnode) {
   $element = array();
-  if ($domnode->nodeType == XML_ELEMENT_NODE) {
-    $element['#type'] = 'htmlelement';
-    $element['#tag'] = $domnode->nodeName;
-    $element['#attributes'] = array();
-    foreach ($domnode->attributes as $attribute => $value) {
-      $element['#attributes'][$attribute] = $value->value;
-    }
-  }
-  else {
-    // todo: the element type should change.
-    $element['#tag'] = NULL;
-  }
-  if ($domnode->hasChildNodes()) {
-    foreach ($domnode->childNodes as $child) {
-      $element[] = htmldom_dom_to_array($child);
-    }
-  }
-  else {
-    $element['#tree'] = FALSE;
-    $element['#value'] = $domnode->textContent;
+  switch ($domnode->nodeType) {
+    case XML_ELEMENT_NODE:
+      $element['#type'] = 'xml_element';
+      $element['#tag'] = $domnode->nodeName;
+      $element['#attributes'] = array();
+      foreach ($domnode->attributes as $attribute => $value) {
+        $element['#attributes'][$attribute] = $value->value;
+      }
+      if ($domnode->hasChildNodes()) {
+        foreach ($domnode->childNodes as $child) {
+          $element[] = htmldom_dom_to_array($child);
+        }
+      }
+      else {
+        $element['#tree'] = FALSE;
+      }
+      break;
+    case XML_TEXT_NODE:
+      $element['#tree'] = FALSE;
+      $element['#value'] = $domnode->textContent;
+      break;
+    default:
+      break;
   }
   return $element;
 }
@@ -73,7 +72,7 @@ function htmldom_dom_to_array($domnode) {
  * Test code:
 $elements = array();
 $elements[0] = array(
-  '#type' => 'htmlelement',
+  '#type' => 'xml_element',
   '#tag' => 'div',
   '#attributes' => array(
     'class' => 'hi',
@@ -81,12 +80,12 @@ $elements[0] = array(
 );
 $elements[0][0] = array(
    '#tag' => 'p',
-   '#type' => 'htmlelement',
+   '#type' => 'xml_element',
    '#value' => 'Hi',
 );
 $elements[0][0][0] = array(
   '#tag' => 'img',
-  '#type' => 'htmlelement',
+  '#type' => 'xml_element',
   '#attributes' => array(
     'src' => 'image.jpg',
   ),
@@ -96,7 +95,6 @@ dpm(drupal_render($elements));
  */
 
 /*
-
 $output = '<div class="hi"><p>Hi<img src="image.jpg" /></p></div>';
 $document = new DOMDocument();
 $document->loadHTML($output);
@@ -106,5 +104,5 @@ for ($i = 0; $i < $nodes->length; $i++) {
   $xml[] = htmldom_dom_to_array($nodes->item($i));
 }
 dpm($xml);
-
+dpm(drupal_render($xml));
  */
