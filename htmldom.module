@@ -1,0 +1,110 @@
+<?php
+// $Id$
+/**
+ * @file htmldom.module
+ * TODO: Enter file description here.
+ */
+
+/**
+ * Implementation of hook_elements().
+ *
+ * These elements represent DOM nodes.
+ *
+ * @todo Functional completeness requires elements for these DOM node types:
+ * ELEMENT_NODE, TEXT_NODE
+ */
+function htmldom_elements() {
+  $type['htmlelement'] = array(
+    '#input' => FALSE,
+    '#tag' => '',
+    '#attributes' => array(),
+    '#pre_render' => array('htmldom_element_pre_render'),
+    '#tree' => TRUE,
+  );
+  // OPTIONAL: Define additional element types.
+  return $type;
+}
+
+/**
+ *
+ */
+function htmldom_element_pre_render($element) {
+  if ($element['#tree']) {
+    $element['#prefix'] = '<'. check_plain($element['#tag']) . drupal_attributes($element['#attributes']) .'>';
+    $element['#suffix'] = '</'. check_plain($element['#tag']) .'>';
+  }
+  else {
+    $element['#value'] = '<'. check_plain($element['#tag']) . drupal_attributes($element['#attributes']) .' />';
+  }
+
+  // The DOM elements should always reduce to markup elements.
+  $element['#type'] = 'markup';
+  return $element;
+}
+
+function htmldom_dom_to_array($domnode) {
+  $element = array();
+  if ($domnode->nodeType == XML_ELEMENT_NODE) {
+    $element['#type'] = 'htmlelement';
+    $element['#tag'] = $domnode->nodeName;
+    $element['#attributes'] = array();
+    foreach ($domnode->attributes as $attribute => $value) {
+      $element['#attributes'][$attribute] = $value->value;
+    }
+  }
+  else {
+    // todo: the element type should change.
+    $element['#tag'] = NULL;
+  }
+  if ($domnode->hasChildNodes()) {
+    foreach ($domnode->childNodes as $child) {
+      $element[] = htmldom_dom_to_array($child);
+    }
+  }
+  else {
+    $element['#tree'] = FALSE;
+    $element['#value'] = $domnode->textContent;
+  }
+  return $element;
+}
+
+
+/*
+ * Test code:
+$elements = array();
+$elements[0] = array(
+  '#type' => 'htmlelement',
+  '#tag' => 'div',
+  '#attributes' => array(
+    'class' => 'hi',
+  ),
+);
+$elements[0][0] = array(
+   '#tag' => 'p',
+   '#type' => 'htmlelement',
+   '#value' => 'Hi',
+);
+$elements[0][0][0] = array(
+  '#tag' => 'img',
+  '#type' => 'htmlelement',
+  '#attributes' => array(
+    'src' => 'image.jpg',
+  ),
+  '#tree' => FALSE,
+);
+dpm(drupal_render($elements));
+ */
+
+/*
+
+$output = '<div class="hi"><p>Hi<img src="image.jpg" /></p></div>';
+$document = new DOMDocument();
+$document->loadHTML($output);
+$xml = array();
+$nodes = $document->getElementsByTagName('body')->item(0)->childNodes;
+for ($i = 0; $i < $nodes->length; $i++) {
+  $xml[] = htmldom_dom_to_array($nodes->item($i));
+}
+dpm($xml);
+
+ */
