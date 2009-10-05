@@ -16,7 +16,6 @@ function htmldom_elements() {
     '#tag' => '',
     '#attributes' => array(),
     '#pre_render' => array('htmldom_xml_element_pre_render'),
-    '#tree' => TRUE,
   );
   return $type;
 }
@@ -25,7 +24,7 @@ function htmldom_elements() {
  *
  */
 function htmldom_xml_element_pre_render($element) {
-  if ($element['#tree']) {
+  if (element_children($element)) {
     $element['#prefix'] = '<'. check_plain($element['#tag']) . drupal_attributes($element['#attributes']) .'>';
     $element['#suffix'] = '</'. check_plain($element['#tag']) .'>';
   }
@@ -40,6 +39,7 @@ function htmldom_xml_element_pre_render($element) {
 
 function htmldom_dom_to_array($domnode) {
   $element = array();
+  dpm($domnode->nodeType);
   switch ($domnode->nodeType) {
     case XML_ELEMENT_NODE:
       $element['#type'] = 'xml_element';
@@ -53,12 +53,11 @@ function htmldom_dom_to_array($domnode) {
           $element[] = htmldom_dom_to_array($child);
         }
       }
-      else {
-        $element['#tree'] = FALSE;
-      }
       break;
+    case XML_COMMENT_NODE:
+      $element['#prefix'] = '<!--';
+      $element['#suffix'] = '-->';
     case XML_TEXT_NODE:
-      $element['#tree'] = FALSE;
       $element['#value'] = $domnode->textContent;
       break;
     default:
@@ -89,7 +88,6 @@ $elements[0][0][0] = array(
   '#attributes' => array(
     'src' => 'image.jpg',
   ),
-  '#tree' => FALSE,
 );
 dpm(drupal_render($elements));
  */
