@@ -39,7 +39,6 @@ function htmldom_xml_element_pre_render($element) {
 
 function htmldom_dom_to_array($domnode) {
   $element = array();
-  dpm($domnode->nodeType);
   switch ($domnode->nodeType) {
     case XML_ELEMENT_NODE:
       $element['#type'] = 'xml_element';
