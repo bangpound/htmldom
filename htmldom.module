@@ -38,6 +38,7 @@ function htmldom_xml_element_pre_render($element) {
 }
 
 function htmldom_dom_to_array($domnode) {
+  static $weight = 0;
   $element = array();
   switch ($domnode->nodeType) {
     case XML_ELEMENT_NODE:
@@ -53,6 +54,17 @@ function htmldom_dom_to_array($domnode) {
         }
       }
       break;
+    case XML_DOCUMENT_TYPE_NODE:
+      // todo: handle all DOCTYPE variations.
+      $element['#prefix'] = '<!DOCTYPE ';
+      $element['#suffix'] = '>';
+      $element['#value'] = $domnode->name .' PUBLIC "'. $domnode->publicId .'" "'. $domnode->systemId .'"';
+      break;
+    case XML_CDATA_SECTION_NODE:
+      //$element['#prefix'] = '<![CDATA[//>';
+      //$element['#suffix'] = '<!]]>';
+      $element['#value'] = $domnode->data;
+      break;
     case XML_COMMENT_NODE:
       $element['#prefix'] = '<!--';
       $element['#suffix'] = '-->';
@@ -60,8 +72,11 @@ function htmldom_dom_to_array($domnode) {
       $element['#value'] = $domnode->textContent;
       break;
     default:
+      //dpm($domnode->nodeType);
+      //dpm($domnode->name);
       break;
   }
+  $element['#weight'] = $weight++;
   return $element;
 }
 
@@ -92,7 +107,8 @@ dpm(drupal_render($elements));
  */
 
 /*
-$output = '<div class="hi"><p>Hi<img src="image.jpg" /></p></div>';
+$output = <<<EOT
+EOT;
 $document = new DOMDocument();
 $document->loadHTML($output);
 $xml = array();
