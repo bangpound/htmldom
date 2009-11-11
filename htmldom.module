@@ -2,7 +2,7 @@
 // $Id$
 /**
  * @file htmldom.module
- * TODO: Enter file description here.
+ * HTML DOM Drupal elements and parser functions.
  */
 
 /**
