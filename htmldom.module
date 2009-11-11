@@ -13,7 +13,7 @@
 function htmldom_elements() {
   $type['xml_element'] = array(
     '#input' => FALSE,
-    '#tag' => '',
+    '#tag' => 'div',
     '#attributes' => array(),
     '#pre_render' => array('htmldom_xml_element_pre_render'),
   );
