@@ -11,7 +11,7 @@
  * These elements represent DOM nodes.
  */
 function htmldom_elements() {
-  $type['xml_element'] = array(
+  $type['htmldom_xml_element'] = array(
     '#input' => FALSE,
     '#tag' => 'div',
     '#attributes' => array(),
@@ -42,7 +42,7 @@ function htmldom_dom_to_array($domnode) {
   $element = array();
   switch ($domnode->nodeType) {
     case XML_ELEMENT_NODE:
-      $element['#type'] = 'xml_element';
+      $element['#type'] = 'htmldom_xml_element';
       $element['#tag'] = $domnode->nodeName;
       $element['#attributes'] = array();
       foreach ($domnode->attributes as $attribute => $value) {
@@ -85,7 +85,7 @@ function htmldom_dom_to_array($domnode) {
  * Test code:
 $elements = array();
 $elements[0] = array(
-  '#type' => 'xml_element',
+  '#type' => 'htmldom_xml_element',
   '#tag' => 'div',
   '#attributes' => array(
     'class' => 'hi',
@@ -93,12 +93,12 @@ $elements[0] = array(
 );
 $elements[0][0] = array(
    '#tag' => 'p',
-   '#type' => 'xml_element',
+   '#type' => 'htmldom_xml_element',
    '#value' => 'Hi',
 );
 $elements[0][0][0] = array(
   '#tag' => 'img',
-  '#type' => 'xml_element',
+  '#type' => 'htmldom_xml_element',
   '#attributes' => array(
     'src' => 'image.jpg',
   ),
