@@ -24,7 +24,7 @@ function htmldom_elements() {
  *
  */
 function htmldom_xml_element_pre_render($element) {
-  if (element_children($element)) {
+  if (element_children($element) || isset($element['#value'])) {
     $element['#prefix'] = '<'. check_plain($element['#tag']) . drupal_attributes($element['#attributes']) .'>';
     $element['#suffix'] = '</'. check_plain($element['#tag']) .'>';
   }
